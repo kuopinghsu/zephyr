@@ -4,4 +4,4 @@
 # SPDX-License-Identifier: Apache-2.0
 
 config BOARD_XT_SIM
-	select SOC_XTENSA_SAMPLE_CONTROLLER
+	select SOC_XTENSA_HIFI5S_AO_7
