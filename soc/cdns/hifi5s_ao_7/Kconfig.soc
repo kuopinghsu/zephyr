@@ -1,0 +1,12 @@
+# Copyright (c) 2024 Cadence Design Systems, Inc.
+# SPDX-License-Identifier: Apache-2.0
+
+config SOC_XTENSA_HIFI5S_AO_7
+	bool
+
+config SOC
+	default "hifi5s_ao_7" if SOC_XTENSA_HIFI5S_AO_7
+
+config SOC_TOOLCHAIN_NAME
+	string
+	default "hifi5s_ao_7" if SOC_XTENSA_HIFI5S_AO_7
