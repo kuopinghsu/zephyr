@@ -5,11 +5,11 @@
  */
 /dts-v1/;
 
-#include "sample_controller.dtsi"
+#include "hifi5s_ao_7.dtsi"
 
 / {
 	model = "xt-sim";
-	compatible = "cdns,xtensa-sample-controller";
+	compatible = "cdns,hifi5s_ao_7";
 
 	chosen {
 		zephyr,sram = &sram0;
