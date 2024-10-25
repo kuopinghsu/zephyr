@@ -39,7 +39,6 @@
 #include <xtensa/config/system.h>	/* for XSHAL_USE_ABSOLUTE_LITERALS only */
 #include <xtensa/xtruntime-core-state.h>
 #include <xtensa/xnne.h>
-#include "xtos-internal.h"
 
 #if XCHAL_HAVE_MPU
 #include <xtensa/mpuasm.h>
@@ -66,8 +65,8 @@
 	.section		.ResetVector.text, "ax"
 
 	.align	4
-	.global	_ResetVector
-_ResetVector:
+	.global	__start
+__start:
 
 #if XCHAL_HAVE_IMEM_LOADSTORE
 	//  NOTE:
@@ -80,12 +79,7 @@ _ResetVector:
 
 	j	_ResetHandler
 
-	.size	_ResetVector, . - _ResetVector
-
-	//  NOTE: These symbols are externally defined
-	.global	__memctl_default
-	.global	__memctl_default_post
-	.global	__prefctl_default
+	.size	__start, . - __start
 
 	.align	4
 	.literal_position	// tells the assembler/linker to place literals here
@@ -145,7 +139,7 @@ _ResetHandler:
 # if XCHAL_HAVE_PSO_CDM && !XCHAL_HAVE_PSO_FULL_RETENTION
 	// Do this later on in the code -- see below
 # else
-	movi	a0, __memctl_default
+	movi	a0, XCHAL_MEMCTL_DEFAULT
 	wsr.memctl	a0
 # endif
 #endif
@@ -180,7 +174,7 @@ _ResetHandler:
 	// Enable and invalidate all ways of both caches. If there is no
 	// dynamic way support then this write will have no effect.
 
-	movi	a0, __memctl_default
+	movi	a0, XCHAL_MEMCTL_DEFAULT
 	wsr.memctl	a0
 #endif
 	
@@ -192,15 +186,13 @@ _ResetHandler:
 
 
 #if XCHAL_HAVE_L2_CACHE
-	.extern _Xthal_L2_ctrl_init
-
 	//  For single-image multicore, only core 0 will do L2 init.
 #if XCHAL_HAVE_PRID
 	xt_core_id a2
 	bnez	a2, 1f
 #endif
 	movi	a4, XCHAL_L2_REGS_PADDR		// L2 controller base address
-	movi	a2, _Xthal_L2_ctrl_init		// software-configured L2 setup (with TAGINIT set)
+	movi	a2, XTHAL_L2_DEFAULT_CTRL_INIT	// software-configured L2 setup (with TAGINIT set)
 	s32i	a2, a4, L2CC_REG_RAM_CTRL_INIT
 1:
 #endif
@@ -496,7 +488,7 @@ IFCAD	dsync
 	/*  loop buffer enable. Can be overridden by user. */
 #if XCHAL_USE_MEMCTL
 	rsr.memctl	a2
-	movi	a3, __memctl_default_post
+	movi	a3, XCHAL_MEMCTL_DEFAULT_POST
 	or	a2, a2, a3
 #if XCHAL_ERRATUM_453
 	srli	a2, a2, 1			/* clear bit 0 (ZOL buffer enable) */
@@ -517,7 +509,7 @@ IFCAD	dsync
 #if XCHAL_HAVE_PREFETCH
 	/* Set up PREFCTL register. By default enables cache prefetch. */
 	/* NOTE: Must be done after MPU has been set up and enabled.   */
-	movi	a2, __prefctl_default
+	movi	a2, XCHAL_CACHE_PREFCTL_DEFAULT
 	wsr.prefctl	a2
 #endif
 
@@ -672,7 +664,7 @@ unpackdone:
 #if XCHAL_HAVE_IMEM_LOADSTORE
 	.size	_ResetHandler, . - _ResetHandler
 #else
-	.size	_ResetVector, . - _ResetVector
+	.size	__start, . - __start
 #endif
 
 	.text
