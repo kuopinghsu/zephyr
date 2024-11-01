@@ -1,0 +1,4 @@
+series:
+- name: hifi5s_4c_l2
+  socs:
+  - name: hifi5s_4c_l2
