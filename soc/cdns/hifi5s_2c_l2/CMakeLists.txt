@@ -2,4 +2,7 @@
 
 zephyr_include_directories(include)
 
+zephyr_library_sources_ifdef(CONFIG_SMP smp.c)
+zephyr_library_sources_ifdef(CONFIG_SMP mpu_table.c)
+
 set(SOC_LINKER_SCRIPT ${CMAKE_CURRENT_SOURCE_DIR}/include/hifi5s_2c_l2.ld CACHE INTERNAL "")

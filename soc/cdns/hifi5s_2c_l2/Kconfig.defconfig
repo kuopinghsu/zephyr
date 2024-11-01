@@ -6,4 +6,7 @@ if SOC_XTENSA_HIFI5S_2C_L2
 config SOC_XTENSA_HIFI5S_2C_L2
 	select XTENSA_GEN_HANDLERS
 
+config MP_MAX_NUM_CPUS
+	default 2
+
 endif
