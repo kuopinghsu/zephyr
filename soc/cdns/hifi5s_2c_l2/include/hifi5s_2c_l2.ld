@@ -347,7 +347,7 @@ SECTIONS
     . = ALIGN (4);
     _iram0_text_end = ABSOLUTE(.);
     _memmap_seg_iram0_0_end = ALIGN(0x8);
-  } >iram0_0_seg :iram0_0_phdr
+  } >RAM :sram11_phdr
 
   _memmap_mem_iram0_max = ABSOLUTE(.);
 
