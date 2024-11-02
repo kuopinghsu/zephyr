@@ -54,6 +54,15 @@
 	.align 4
 
 _start:
+#if defined(CONFIG_SMP)
+	.weak   z_mp_asm_entry
+	movi    a4, z_mp_asm_entry
+	rsr     a1, PRID
+	beqz    a1, 1f
+	beqz    a4, 1f
+	jx      a4
+1:
+#endif
 	/*
 	 *  _start is typically NOT at the beginning of the text segment --
 	 *  it is always called from either the reset vector (__start) or other
@@ -242,6 +251,11 @@ _start:
 	// Save argc and argv.
 	CALL	z_save_bootargs
 #endif  // CONFIG_BOARD_XT_SIM && CONFIG_BOOTARGS
+
+#if defined(CONFIG_SMP)
+	movi	a4, z_mp_set_core0_active
+	CALLX	a4
+#endif
 
 	/* Enter C domain, never returns from here */
 	CALL	z_prep_c
