@@ -12,9 +12,13 @@
 #include <zephyr/sys/__assert.h>
 #include <zephyr/sys/sys_io.h>
 
+#include <ksched.h>
+#include <ipi.h>
+
 #include <kernel_internal.h>
 
 #include <xtensa/config/core-isa.h>
+#include <xtensa/xtsubsystem.h>
 
 #include <zephyr/zsr.h>
 #include <zephyr/cache.h>
@@ -57,6 +61,11 @@ static void __used z_mp_entry(void)
 	_cpu_t *cpu = &_kernel.cpus[prid];
 	__asm__ volatile("wsr %0, " ZSR_CPU_STR :: "r"(cpu));
 
+	#ifdef CONFIG_SCHED_IPI_SUPPORTED
+	irq_enable(XCHAL_SUBSYS_IPI_S0C0_INTNUM);
+	irq_enable(XCHAL_SUBSYS_IPI_S0C1_INTNUM);
+	#endif
+
 	soc_cpus_active[prid] = true;
 	z_mp_start.fn(z_mp_start.arg);
 	__ASSERT(false, "arch_cpu_start() handler should never return");
@@ -86,3 +95,42 @@ void arch_cpu_start(int cpu_num, k_thread_stack_t *stack, int sz,
 	// Must be done last.
 	z_mp_start.cpu = cpu_num;
 }
+
+static void __attribute__ ((noinline)) ipi_trigger(int c)
+{
+	// Called from within this noinline function
+	// to avoid invalid optimizations.
+	xthal_ipi_trigger(c);
+}
+
+void arch_sched_directed_ipi(uint32_t cpu_bitmap)
+{
+	unsigned int num_cpus = arch_num_cpus();
+	for (int c = 0; c < num_cpus; ++c) {
+		if (soc_cpus_active[c] && (cpu_bitmap & BIT(c)))
+			ipi_trigger(c);
+	}
+}
+
+void arch_sched_broadcast_ipi(void)
+{
+	arch_sched_directed_ipi(IPI_ALL_CPUS_MASK);
+}
+
+static void ipi_isr(const void *param)
+{
+	ARG_UNUSED(param);
+	z_sched_ipi();
+}
+
+static int soc_mp_init(void)
+{
+	#ifdef CONFIG_SCHED_IPI_SUPPORTED
+	IRQ_CONNECT(XCHAL_SUBSYS_IPI_S0C0_INTNUM, 0, ipi_isr, NULL, 0);
+	IRQ_CONNECT(XCHAL_SUBSYS_IPI_S0C1_INTNUM, 0, ipi_isr, NULL, 0);
+	irq_enable(XCHAL_SUBSYS_IPI_S0C0_INTNUM);
+	irq_enable(XCHAL_SUBSYS_IPI_S0C1_INTNUM);
+	#endif
+	return 0;
+}
+SYS_INIT(soc_mp_init, PRE_KERNEL_1, 99);
