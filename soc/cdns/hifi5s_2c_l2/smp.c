@@ -23,6 +23,80 @@
 #include <zephyr/zsr.h>
 #include <zephyr/cache.h>
 
+#ifndef XCHAL_SUBSYS_IPI_S0C0_INTNUM
+#define XCHAL_SUBSYS_IPI_S0C0_INTNUM 28
+#define XCHAL_SUBSYS_IPI_S0C1_INTNUM 29
+/* Xtsubsystem block offset relative to APB base */
+#define XTSUB_IPI_O             UINT32_C(0xfc000)
+#define XTSUB_IPI_BASE          (XTSUB_IPI_O)
+/* Xtsubsystem full register block definitions */
+#define XTSUB_TOTAL_BASE        (XTSUB_IPI_BASE)
+/*
+ * This function puts the Xtsubsystem base address into the location
+ * pointed to by xtsub_addr.
+ *
+ * Parameters:
+ *      xtsub_addr              Pointer to memory to be written on success
+ *
+ * It returns:
+ *      XTHAL_INVALID           If xtsub_addr is NULL,
+ *      XTHAL_UNSUPPORTED       APB is not configured, or
+ *      XTHAL_SUCCESS           on success
+ */
+XT_INLINE int32_t xthal_get_xtsub_address(uint32_t *xtsub_addr)
+{
+    int32_t ret = xthal_get_apb_address(xtsub_addr);
+    if (ret == XTHAL_SUCCESS) {
+        *xtsub_addr += XTSUB_TOTAL_BASE;
+    }
+    return ret;
+}
+/* Xtsubsystem IPI register definitions */
+#define XTSUB_IPI_S0C_B         UINT32_C(0x0000)    /* Inter-processor interrupt set 0 base */
+#define XTSUB_IPI_S0C_I         UINT32_C(4)         /* IPI per-core increment */
+/*
+ * This function triggers an inter-processor interrupt (IPI) on the specified
+ * core using IPI set 0.  The remote core must not also be the current core.
+ * The interrupt type is not checked but must be configured as "external edge."
+ *
+ * By convention, this function triggers processor interrupt <i>, i.e.
+ * XCHAL_SUBSYS_IPI_S0C<n>_INTNUM, on "core_id" where <n> corresponds to the
+ * ID of the core calling this function.  Processor interrupt <i> can be
+ * mapped to an external BInterrupt pin using XCHAL_EXTINT<i>_NUM.
+ *
+ * Parameters:
+ *      core_id                 Remote core on which to trigger an IPI
+ *
+ * It returns:
+ *      XTHAL_INVALID           If the specified core is invalid,
+ *      XTHAL_UNSUPPORTED       APB is not configured, or
+ *      XTHAL_SUCCESS           on success
+ */
+XT_INLINE int32_t xthal_ipi_trigger(uint32_t core_id)
+{
+    uint32_t curr_core_id = xthal_get_coreid();
+    uint32_t ipi_reg_addr;
+    int32_t ret;
+
+    if ((core_id == curr_core_id) || (core_id >= XCHAL_SUBSYS_NUM_CORES)) {
+        return XTHAL_INVALID;
+    }
+    ret = xthal_get_xtsub_address(&ipi_reg_addr);
+    if (ret != XTHAL_SUCCESS) {
+        return ret;
+    }
+
+    ipi_reg_addr += XTSUB_IPI_S0C_B + (XTSUB_IPI_S0C_I * curr_core_id);
+
+    // Writing 1 to bit b sends an interrupt pulse to core b.
+    // XTSC models this as an MMIO register, so writing a 0 is required
+    // to complete the pulse.  RTL does nothing when 0 is written.
+    *(volatile uint32_t *)ipi_reg_addr = (1 << core_id);
+    *(volatile uint32_t *)ipi_reg_addr = 0;
+    return XTHAL_SUCCESS;
+}
+#endif
+
 volatile struct cpustart_rec {
 	uint32_t        cpu;
 	arch_cpustart_t	fn;
