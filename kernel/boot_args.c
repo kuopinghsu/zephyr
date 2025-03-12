@@ -8,7 +8,7 @@
 LOG_MODULE_DECLARE(os, CONFIG_KERNEL_LOG_LEVEL);
 
 extern const char *get_bootargs(void);
-char **prepare_main_args(int *argc)
+__weak char **prepare_main_args(int *argc)
 {
 #ifdef CONFIG_DYNAMIC_BOOTARGS
 	const char *bootargs = get_bootargs();
