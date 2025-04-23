@@ -14,6 +14,10 @@
 #include <zephyr/arch/xtensa/mpu.h>
 #endif
 
+#ifdef CONFIG_XTENSA_LIBC
+#include <sys/reent.h>
+#endif
+
 /* Xtensa doesn't use these structs, but Zephyr core requires they be
  * defined so they can be included in struct _thread_base.  Dummy
  * field exists for sizeof compatibility with C++.
@@ -42,6 +46,9 @@ struct _thread_arch {
 	 * Un-set for surpervisor threads.
 	 */
 	uint8_t *psp;
+#endif
+#ifdef CONFIG_XTENSA_LIBC
+	struct _reent reent;
 #endif
 };
 
