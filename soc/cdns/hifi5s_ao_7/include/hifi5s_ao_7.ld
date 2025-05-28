@@ -377,7 +377,7 @@ SECTIONS
     . = ALIGN (4);
     _iram0_text_end = ABSOLUTE(.);
     _memmap_seg_iram0_0_end = ALIGN(0x8);
-  } >iram0_0_seg :iram0_0_phdr
+  } >RAM :sram19_phdr
 
   _memmap_mem_iram0_max = ABSOLUTE(.);
 
@@ -408,7 +408,7 @@ SECTIONS
     . = ALIGN (4);
     _Level2InterruptVector_text_end = ABSOLUTE(.);
     _memmap_seg_sram2_end = ALIGN(0x8);
-  } >sram2_seg :sram2_phdr
+  } >RAM :sram19_phdr
 
 
   .Level3InterruptVector.literal : ALIGN(4)
@@ -428,7 +428,7 @@ SECTIONS
     . = ALIGN (4);
     _Level3InterruptVector_text_end = ABSOLUTE(.);
     _memmap_seg_sram4_end = ALIGN(0x8);
-  } >sram4_seg :sram4_phdr
+  } >RAM :sram19_phdr
 
 
   .Level4InterruptVector.literal : ALIGN(4)
@@ -448,7 +448,7 @@ SECTIONS
     . = ALIGN (4);
     _Level4InterruptVector_text_end = ABSOLUTE(.);
     _memmap_seg_sram6_end = ALIGN(0x8);
-  } >sram6_seg :sram6_phdr
+  } >RAM :sram19_phdr
 
 
   .Level5InterruptVector.literal : ALIGN(4)
@@ -468,7 +468,7 @@ SECTIONS
     . = ALIGN (4);
     _Level5InterruptVector_text_end = ABSOLUTE(.);
     _memmap_seg_sram8_end = ALIGN(0x8);
-  } >sram8_seg :sram8_phdr
+  } >RAM :sram19_phdr
 
 
   .DebugExceptionVector.literal : ALIGN(4)
@@ -488,7 +488,7 @@ SECTIONS
     . = ALIGN (4);
     _DebugExceptionVector_text_end = ABSOLUTE(.);
     _memmap_seg_sram10_end = ALIGN(0x8);
-  } >sram10_seg :sram10_phdr
+  } >RAM :sram19_phdr
 
 
   .NMIExceptionVector.literal : ALIGN(4)
@@ -508,7 +508,7 @@ SECTIONS
     . = ALIGN (4);
     _NMIExceptionVector_text_end = ABSOLUTE(.);
     _memmap_seg_sram12_end = ALIGN(0x8);
-  } >sram12_seg :sram12_phdr
+  } >RAM :sram19_phdr
 
 
   .KernelExceptionVector.literal : ALIGN(4)
