@@ -633,7 +633,7 @@ _restore_\@:
  */
 .macro DEF_EXCINT LVL, ENTRY_SYM, C_HANDLER_SYM
 #if defined(CONFIG_XTENSA_SMALL_VECTOR_TABLE_ENTRY)
-.pushsection .iram.text, "ax"
+.pushsection .sram.text, "ax"
 .global _Level\LVL\()VectorHelper
 _Level\LVL\()VectorHelper :
 #else
@@ -786,7 +786,7 @@ _after_imms\LVL:
 
 #if defined(CONFIG_XTENSA_SMALL_VECTOR_TABLE_ENTRY)
 .if \LVL == 1
-.pushsection .iram0.text, "ax"
+.pushsection .sram.text, "ax"
 .elseif \LVL == XCHAL_DEBUGLEVEL
 .pushsection .DebugExceptionVector.text, "ax"
 .elseif \LVL == XCHAL_NMILEVEL
