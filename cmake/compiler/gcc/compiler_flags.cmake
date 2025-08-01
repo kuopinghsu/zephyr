@@ -147,6 +147,16 @@ set_property(TARGET compiler-cpp PROPERTY dialect_cpp20 "-std=c++20"
 set_property(TARGET compiler-cpp PROPERTY dialect_cpp2b "-std=c++2b"
   "-Wno-register" "-Wno-volatile")
 
+if (CONFIG_XTENSA_LIBC)
+  set_property(TARGET compiler-cpp APPEND PROPERTY dialect_cpp11 "-stdlib=libc++")
+  set_property(TARGET compiler-cpp APPEND PROPERTY dialect_cpp14 "-stdlib=libc++")
+  set_property(TARGET compiler-cpp APPEND PROPERTY dialect_cpp17 "-stdlib=libc++")
+  set_property(TARGET compiler-cpp APPEND PROPERTY dialect_cpp2a "-stdlib=libc++")
+  set_property(TARGET compiler-cpp APPEND PROPERTY dialect_cpp20 "-stdlib=libc++")
+  set_property(TARGET compiler-cpp APPEND PROPERTY dialect_cpp2b "-stdlib=libc++")
+  set_property(TARGET compiler-cpp APPEND PROPERTY dialect_cpp23 "-stdlib=libc++")
+endif()
+
 # Flag for disabling strict aliasing rule in C and C++
 set_compiler_property(PROPERTY no_strict_aliasing -fno-strict-aliasing)
 
