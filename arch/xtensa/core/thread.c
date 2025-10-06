@@ -13,6 +13,8 @@
 #include <xtensa_asm2_context.h>
 #include <xtensa_internal.h>
 
+#include <xtensa/config/system.h>
+
 #include <zephyr/logging/log.h>
 LOG_MODULE_DECLARE(os, CONFIG_KERNEL_LOG_LEVEL);
 
@@ -137,7 +139,14 @@ void arch_new_thread(struct k_thread *thread, k_thread_stack_t *stack,
 	sys_cache_data_flush_and_invd_range(stack, (char *)stack_ptr - (char *)stack);
 #endif
 #if defined(CONFIG_XTENSA_LIBC)
-	_init_reent(&thread->arch.reent);
+	struct _reent *reent_ptr = &thread->arch.reent;
+#if XSHAL_CLIB == XTHAL_CLIB_XCLIB
+	_init_reent(reent_ptr);
+#endif
+#if XSHAL_CLIB == XTHAL_CLIB_NEWLIB
+	memset(reent_ptr, 0, sizeof(struct _reent));
+	_REENT_INIT_PTR(reent_ptr);
+#endif
 #endif
 }
 
