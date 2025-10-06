@@ -4,6 +4,8 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
+#include <xtensa/config/system.h>
+
 #include <zephyr/kernel.h>
 #include <stdlib.h>
 #include <sys/reent.h>
@@ -18,6 +20,8 @@ void xtensa_xclib_init(void)
 	_init_reent_bss();
 #endif
 }
+
+#if XSHAL_CLIB == XTHAL_CLIB_XCLIB
 
 int32_t _xclib_use_mt = 1; /* Enables xclib multithread support */
 
@@ -68,6 +72,8 @@ void _Mtxunlock(_Rmtx *mtx)
 	}
 }
 
+#endif
+
 #if defined(__DYNAMIC_REENT__)
 struct _reent *__getreent(void)
 {
@@ -83,3 +89,29 @@ void _xclib_update_reent_ptr(struct k_thread *thread)
 	_reent_ptr = &thread->arch.reent;
 #endif
 }
+
+#if XSHAL_CLIB == XTHAL_CLIB_NEWLIB
+
+K_MUTEX_DEFINE(clib_lock);
+
+void __malloc_lock(struct _reent * ptr)
+{
+	 k_mutex_lock(&clib_lock, K_FOREVER);
+}
+
+void __malloc_unlock(struct _reent * ptr)
+{
+	k_mutex_unlock(&clib_lock);
+}
+
+void __env_lock(struct _reent * ptr)
+{
+	 k_mutex_lock(&clib_lock, K_FOREVER);
+}
+
+void __env_unlock(struct _reent * ptr)
+{
+	k_mutex_unlock(&clib_lock);
+}
+
+#endif
