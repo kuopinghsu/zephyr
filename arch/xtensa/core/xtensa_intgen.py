@@ -41,8 +41,9 @@ def emit_int_handler(ints):
             # handler pointer and argument as literals, saving a few
             # instructions and avoiding the need to link in
             # _sw_isr_table entirely.
-            cprint("if (mask & BIT(%d)) {" % i)
-            cprint("mask = BIT(%d);" % i)
+            mask = i % 32
+            cprint("if (mask & BIT(%d)) {" % mask)
+            cprint("mask = BIT(%d);" % mask)
             cprint("irq = %d;" % i)
             cprint("goto handle_irq;")
             cprint("}")
@@ -51,7 +52,7 @@ def emit_int_handler(ints):
 
         m = 0
         for i in ints[0:half]:
-            m |= 1 << i
+            m |= 1 << (i % 32)
         cprint("if (mask & " + ("0x%x" % (m)) + ") {")
         emit_int_handler(ints[0:half])
         cprint("} else {")
@@ -129,14 +130,53 @@ for lvl in ints_by_lvl:
     cprint("int irq;")
     print("")
 
-    if int(len(ints_by_lvl[lvl])) > 32:
-        emit_int_handler((sorted(ints_by_lvl[lvl]))[0:31])
-    else:
-        emit_int_handler(sorted(ints_by_lvl[lvl]))
+    cprint("switch(set) {")
+
+    ints = []
+    for irq in ints_by_lvl[lvl]:
+        if (int(irq / 32) == 0):
+            ints.append(irq)
+
+    if ints:
+        cprint("\tcase 0:")
+        emit_int_handler(sorted(ints))
+        cprint("break;")
+
+    ints = []
+    for irq in ints_by_lvl[lvl]:
+        if (int(irq / 32) == 1):
+            ints.append(irq)
+
+    if ints:
+        cprint("\tcase 1:")
+        emit_int_handler(sorted(ints))
+        cprint("break;")
+
+    ints = []
+    for irq in ints_by_lvl[lvl]:
+        if (int(irq / 32) == 2):
+            ints.append(irq)
+
+    if ints:
+        cprint("\tcase 2:")
+        emit_int_handler(sorted(ints))
+        cprint("break;")
+
+    ints = []
+    for irq in ints_by_lvl[lvl]:
+        if (int(irq / 32) == 3):
+            ints.append(irq)
+
+    if ints:
+        cprint("\tcase 3:")
+        emit_int_handler(sorted(ints))
+        cprint("break;")
+
+    cprint("}")
 
     cprint("return 0;")
     cprint("handle_irq:")
-    cprint("_sw_isr_table[set * 32 + irq].isr(_sw_isr_table[set * 32 + irq].arg);")
+    cprint("_sw_isr_table[irq].isr(_sw_isr_table[irq].arg);")
     cprint("return mask;")
     cprint("}")
     cprint("")
