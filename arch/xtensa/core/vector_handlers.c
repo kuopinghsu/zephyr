@@ -299,101 +299,109 @@ __unused void *xtensa_int##l##_c(void *interrupted_stack)       \
 	while ((m = _xtensa_handle_one_int##l(0, irqs))) {      \
 		irqs ^= m;                                      \
 		__asm__ volatile("wsr.intclear %0" : : "r"(m)); \
+		if (!irqs)                                      \
+			break;                                  \
 	}                                                       \
 	return return_to(interrupted_stack);                    \
 }
 #endif /* XCHAL_NUM_INTERRUPTS <= 32 */
 
 #if XCHAL_NUM_INTERRUPTS > 32 && XCHAL_NUM_INTERRUPTS <= 64
-#define DEF_INT_C_HANDLER(l)                                     \
-__unused void *xtensa_int##l##_c(void *interrupted_stack)        \
-{                                                                \
-	uint32_t irqs, intenable, m;                             \
-	usage_stop();                                            \
-	__asm__ volatile("rsr.interrupt %0" : "=r"(irqs));       \
-	__asm__ volatile("rsr.intenable %0" : "=r"(intenable));  \
-	irqs &= intenable;                                       \
-	while ((m = _xtensa_handle_one_int##l(0, irqs))) {       \
-		irqs ^= m;                                       \
-		__asm__ volatile("wsr.intclear %0" : : "r"(m));  \
-	}                                                        \
-	__asm__ volatile("rsr.interrupt1 %0" : "=r"(irqs));      \
-	__asm__ volatile("rsr.intenable1 %0" : "=r"(intenable)); \
-	irqs &= intenable;                                       \
-	while ((m = _xtensa_handle_one_int##l(1, irqs))) {       \
-		irqs ^= m;                                       \
-		__asm__ volatile("wsr.intclear1 %0" : : "r"(m)); \
-	}                                                        \
-	return return_to(interrupted_stack);                     \
+#define DEF_INT_C_HANDLER(l)                                       \
+__unused void *xtensa_int##l##_c(void *interrupted_stack)          \
+{                                                                  \
+	uint32_t irqs, intenable, m;                               \
+	usage_stop();                                              \
+	__asm__ volatile("rsr.interrupt %0" : "=r"(irqs));         \
+	__asm__ volatile("rsr.intenable %0" : "=r"(intenable));    \
+	irqs &= intenable;                                         \
+	while (irqs && (m = _xtensa_handle_one_int##l(0, irqs))) { \
+		irqs ^= m;                                         \
+		__asm__ volatile("wsr.intclear %0" : : "r"(m));    \
+	}                                                          \
+	__asm__ volatile("rsr.interrupt1 %0" : "=r"(irqs));        \
+	__asm__ volatile("rsr.intenable1 %0" : "=r"(intenable));   \
+	irqs &= intenable;                                         \
+	while ((m = _xtensa_handle_one_int##l(1, irqs))) {         \
+		irqs ^= m;                                         \
+		__asm__ volatile("wsr.intclear1 %0" : : "r"(m));   \
+		if (!irqs)                                         \
+			break;                                     \
+	}                                                          \
+	return return_to(interrupted_stack);                       \
 }
 #endif /* XCHAL_NUM_INTERRUPTS > 32 && XCHAL_NUM_INTERRUPTS <= 64 */
 
 #if XCHAL_NUM_INTERRUPTS > 64 && XCHAL_NUM_INTERRUPTS <= 96
-#define DEF_INT_C_HANDLER(l)                                     \
-__unused void *xtensa_int##l##_c(void *interrupted_stack)        \
-{                                                                \
-	uint32_t irqs, intenable, m;                             \
-	usage_stop();                                            \
-	__asm__ volatile("rsr.interrupt %0" : "=r"(irqs));       \
-	__asm__ volatile("rsr.intenable %0" : "=r"(intenable));  \
-	irqs &= intenable;                                       \
-	while ((m = _xtensa_handle_one_int##l(0, irqs))) {       \
-		irqs ^= m;                                       \
-		__asm__ volatile("wsr.intclear %0" : : "r"(m));  \
-	}                                                        \
-	__asm__ volatile("rsr.interrupt1 %0" : "=r"(irqs));      \
-	__asm__ volatile("rsr.intenable1 %0" : "=r"(intenable)); \
-	irqs &= intenable;                                       \
-	while ((m = _xtensa_handle_one_int##l(1, irqs))) {       \
-		irqs ^= m;                                       \
-		__asm__ volatile("wsr.intclear1 %0" : : "r"(m)); \
-	}                                                        \
-	__asm__ volatile("rsr.interrupt2 %0" : "=r"(irqs));      \
-	__asm__ volatile("rsr.intenable2 %0" : "=r"(intenable)); \
-	irqs &= intenable;                                       \
-	while ((m = _xtensa_handle_one_int##l(2, irqs))) {       \
-		irqs ^= m;                                       \
-		__asm__ volatile("wsr.intclear2 %0" : : "r"(m)); \
-	}                                                        \
-	return return_to(interrupted_stack);                     \
+#define DEF_INT_C_HANDLER(l)                                       \
+__unused void *xtensa_int##l##_c(void *interrupted_stack)          \
+{                                                                  \
+	uint32_t irqs, intenable, m;                               \
+	usage_stop();                                              \
+	__asm__ volatile("rsr.interrupt %0" : "=r"(irqs));         \
+	__asm__ volatile("rsr.intenable %0" : "=r"(intenable));    \
+	irqs &= intenable;                                         \
+	while (irqs && (m = _xtensa_handle_one_int##l(0, irqs))) { \
+		irqs ^= m;                                         \
+		__asm__ volatile("wsr.intclear %0" : : "r"(m));    \
+	}                                                          \
+	__asm__ volatile("rsr.interrupt1 %0" : "=r"(irqs));        \
+	__asm__ volatile("rsr.intenable1 %0" : "=r"(intenable));   \
+	irqs &= intenable;                                         \
+	while (irqs && (m = _xtensa_handle_one_int##l(1, irqs))) { \
+		irqs ^= m;                                         \
+		__asm__ volatile("wsr.intclear1 %0" : : "r"(m));   \
+	}                                                          \
+	__asm__ volatile("rsr.interrupt2 %0" : "=r"(irqs));        \
+	__asm__ volatile("rsr.intenable2 %0" : "=r"(intenable));   \
+	irqs &= intenable;                                         \
+	while ((m = _xtensa_handle_one_int##l(2, irqs))) {         \
+		irqs ^= m;                                         \
+		__asm__ volatile("wsr.intclear2 %0" : : "r"(m));   \
+		if (!irqs)                                         \
+			break;                                     \
+	}                                                          \
+	return return_to(interrupted_stack);                       \
 }
 #endif /* XCHAL_NUM_INTERRUPTS > 64 && XCHAL_NUM_INTERRUPTS <= 96 */
 
 #if XCHAL_NUM_INTERRUPTS > 96
-#define DEF_INT_C_HANDLER(l)                                     \
-__unused void *xtensa_int##l##_c(void *interrupted_stack)        \
-{                                                                \
-	uint32_t irqs, intenable, m;                             \
-	usage_stop();                                            \
-	__asm__ volatile("rsr.interrupt %0" : "=r"(irqs));       \
-	__asm__ volatile("rsr.intenable %0" : "=r"(intenable));  \
-	irqs &= intenable;                                       \
-	while ((m = _xtensa_handle_one_int##l(0, irqs))) {       \
-		irqs ^= m;                                       \
-		__asm__ volatile("wsr.intclear %0" : : "r"(m));  \
-	}                                                        \
-	__asm__ volatile("rsr.interrupt1 %0" : "=r"(irqs));      \
-	__asm__ volatile("rsr.intenable1 %0" : "=r"(intenable)); \
-	irqs &= intenable;                                       \
-	while ((m = _xtensa_handle_one_int##l(1, irqs))) {       \
-		irqs ^= m;                                       \
-		__asm__ volatile("wsr.intclear1 %0" : : "r"(m)); \
-	}                                                        \
-	__asm__ volatile("rsr.interrupt2 %0" : "=r"(irqs));      \
-	__asm__ volatile("rsr.intenable2 %0" : "=r"(intenable)); \
-	irqs &= intenable;                                       \
-	while ((m = _xtensa_handle_one_int##l(2, irqs))) {       \
-		irqs ^= m;                                       \
-		__asm__ volatile("wsr.intclear2 %0" : : "r"(m)); \
-	}                                                        \
-	__asm__ volatile("rsr.interrupt3 %0" : "=r"(irqs));      \
-	__asm__ volatile("rsr.intenable3 %0" : "=r"(intenable)); \
-	irqs &= intenable;                                       \
-	while ((m = _xtensa_handle_one_int##l(3, irqs))) {       \
-		irqs ^= m;                                       \
-		__asm__ volatile("wsr.intclear3 %0" : : "r"(m)); \
-	}                                                        \
-	return return_to(interrupted_stack);                     \
+#define DEF_INT_C_HANDLER(l)                                       \
+__unused void *xtensa_int##l##_c(void *interrupted_stack)          \
+{                                                                  \
+	uint32_t irqs, intenable, m;                               \
+	usage_stop();                                              \
+	__asm__ volatile("rsr.interrupt %0" : "=r"(irqs));         \
+	__asm__ volatile("rsr.intenable %0" : "=r"(intenable));    \
+	irqs &= intenable;                                         \
+	while (irqs && (m = _xtensa_handle_one_int##l(0, irqs))) { \
+		irqs ^= m;                                         \
+		__asm__ volatile("wsr.intclear %0" : : "r"(m));    \
+	}                                                          \
+	__asm__ volatile("rsr.interrupt1 %0" : "=r"(irqs));        \
+	__asm__ volatile("rsr.intenable1 %0" : "=r"(intenable));   \
+	irqs &= intenable;                                         \
+	while (irqs && (m = _xtensa_handle_one_int##l(1, irqs))) { \
+		irqs ^= m;                                         \
+		__asm__ volatile("wsr.intclear1 %0" : : "r"(m));   \
+	}                                                          \
+	__asm__ volatile("rsr.interrupt2 %0" : "=r"(irqs));        \
+	__asm__ volatile("rsr.intenable2 %0" : "=r"(intenable));   \
+	irqs &= intenable;                                         \
+	while (irqs && (m = _xtensa_handle_one_int##l(2, irqs))) { \
+		irqs ^= m;                                         \
+		__asm__ volatile("wsr.intclear2 %0" : : "r"(m));   \
+	}                                                          \
+	__asm__ volatile("rsr.interrupt3 %0" : "=r"(irqs));        \
+	__asm__ volatile("rsr.intenable3 %0" : "=r"(intenable));   \
+	irqs &= intenable;                                         \
+	while ((m = _xtensa_handle_one_int##l(3, irqs))) {         \
+		irqs ^= m;                                         \
+		__asm__ volatile("wsr.intclear3 %0" : : "r"(m));   \
+		if (!irqs)                                         \
+			break;                                     \
+	}                                                          \
+	return return_to(interrupted_stack);                       \
 }
 #endif /* XCHAL_NUM_INTERRUPTS > 96 */
 
