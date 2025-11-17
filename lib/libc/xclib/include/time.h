@@ -1,0 +1,26 @@
+/*
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
+#ifndef ZEPHYR_LIB_LIBC_XCLIB_INCLUDE_TIME_H_
+#define ZEPHYR_LIB_LIBC_XCLIB_INCLUDE_TIME_H_
+
+#include_next <time.h>
+
+#include <zephyr/posix/posix_time.h>
+#include <zephyr/toolchain.h>
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+char      *asctime_r(const struct tm *ZRESTRICT tp, char *ZRESTRICT buf);
+char      *ctime_r(const time_t *clock, char *buf);
+struct tm *gmtime_r(const time_t *ZRESTRICT timep, struct tm *ZRESTRICT result);
+struct tm *localtime_r(const time_t *ZRESTRICT timer, struct tm *ZRESTRICT result);
+
+#ifdef __cplusplus
+}
+#endif
+
+#endif /* ZEPHYR_LIB_LIBC_XCLIB_INCLUDE_TIME_H_ */

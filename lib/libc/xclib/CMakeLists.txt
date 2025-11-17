@@ -6,3 +6,5 @@ zephyr_library_sources(
   libc-hooks.c
   multithreading.c
 )
+
+zephyr_include_directories(include)
