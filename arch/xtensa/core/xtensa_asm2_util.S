@@ -391,9 +391,9 @@ noflush:
 	 l32i a1, a2, ___xtensa_irq_bsa_t_a2_OFFSET
 
 #if defined(CONFIG_XTENSA_LIBC)
-	rsr   a6, ZSR_CPU
-	l32i  a6, a6, ___cpu_t_current_OFFSET
-	call4 _xclib_update_reent_ptr
+	rsr   ARG1, ZSR_CPU
+	l32i  ARG1, ARG1, ___cpu_t_current_OFFSET
+	CALL _xclib_update_reent_ptr
 #endif
 
 #ifdef CONFIG_INSTRUMENT_THREAD_SWITCHING
