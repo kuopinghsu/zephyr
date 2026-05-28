@@ -123,7 +123,12 @@ __asm__(".section .text.z_mp_asm_entry, \"x\" \n\t"
 	"  add   a4, a4, a3 \n\t"
 	"  add   a1, a1, a4 \n\t"
 	// Call z_mp_entry().
-	"  call4 z_mp_entry \n\t");
+#if __XTENSA_CALL0_ABI__
+	"  call0 z_mp_entry \n\t"
+#else
+	"  call4 z_mp_entry \n\t"
+#endif
+);
 
 static void __used z_mp_entry(void)
 {
