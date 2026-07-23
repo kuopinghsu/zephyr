@@ -1,0 +1,30 @@
+# Copyright (c) 2024 Cadence Design Systems, Inc.
+# SPDX-License-Identifier: Apache-2.0
+
+if SOC_XTENSA_LX
+
+config SOC_XTENSA_LX
+	select XTENSA_GEN_HANDLERS
+	select SCHED_IPI_SUPPORTED if SMP
+
+# SMP is off by default — single processor unless explicitly enabled.
+# To enable SMP add CONFIG_SMP=y to your board or prj.conf.
+config SMP
+	default n
+
+config MP_MAX_NUM_CPUS
+	default 1
+	range 1 8 if SMP
+	help
+	  Maximum number of CPU cores to activate.
+
+	  Set to 1 (default) for single-processor operation.
+	  For SMP builds (CONFIG_SMP=y), set to the number of active cores
+	  supported by the Xtensa subsystem:
+	    - LX7 single-core : 1
+	    - LX8 2-core SMP  : 2
+	    - LX8 3-core SMP  : 3
+	    - LX8 4-core SMP  : 4
+	    - LX8 8-core SMP  : 8
+
+endif

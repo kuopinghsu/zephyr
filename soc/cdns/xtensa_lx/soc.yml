@@ -1,0 +1,4 @@
+series:
+- name: xtensa_lx
+  socs:
+  - name: xtensa_lx

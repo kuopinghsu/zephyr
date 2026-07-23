@@ -5,11 +5,11 @@
  */
 /dts-v1/;
 
-#include "sample_controller.dtsi"
+#include "xtensa_lx.dtsi"
 
 / {
 	model = "xt-sim";
-	compatible = "cdns,xtensa-sample-controller";
+	compatible = "cdns,xtensa_lx";
 
 	chosen {
 		zephyr,sram = &sram0;

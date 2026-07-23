@@ -1,0 +1,12 @@
+# Copyright (c) 2024 Cadence Design Systems, Inc.
+# SPDX-License-Identifier: Apache-2.0
+
+config SOC_XTENSA_LX
+	bool
+
+config SOC
+	default "xtensa_lx" if SOC_XTENSA_LX
+
+config SOC_TOOLCHAIN_NAME
+	string
+	default "xtensa_lx" if SOC_XTENSA_LX
