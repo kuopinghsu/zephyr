@@ -240,66 +240,90 @@ class LinkerScriptConverter:
     
     def _add_zephyr_sections(self, content):
         """Add Zephyr-specific sections and includes throughout the linker script."""
-        
+
+        errors_before = len(self.errors)
+
         # Find the last SRAM phdr from the PHDRS section (after memory conversion)
         # Look for sramN_phdr in the PHDRS section and find the highest N
         phdr_matches = re.findall(r'sram(\d+)_phdr', content)
         if not phdr_matches:
             self.errors.append("Could not find any SRAM phdr in _add_zephyr_sections")
             return content
-        
+
         # Find the highest number
         max_num = max(int(num) for num in phdr_matches)
         phdr_name = f"sram{max_num}_phdr"
-        
+
         # 1. Add code data relocation before .sram.rodata
-        content = re.sub(
+        new_content = re.sub(
             r'(\n)(  \.sram\.rodata : ALIGN\(4\))',
             r'\1#ifdef CONFIG_CODE_DATA_RELOCATION\n#include <linker_relocate.ld>\n#endif\n\n\2',
             content
         )
-        
-        # 2. Add _image_ram_start and includes after .sram.rodata section starts
-        content = re.sub(
+        if new_content == content:
+            self.errors.append("Failed to add #include <linker_relocate.ld> before .sram.rodata")
+        content = new_content
+
+        # 2. Add _image_ram_start inside .sram.rodata section
+        new_content = re.sub(
             r'(  \.sram\.rodata : ALIGN\(4\)\n  \{\n)(    _sram_rodata_start)',
             r'\1    _image_ram_start = ABSOLUTE(.);\n\2',
             content
         )
-        
+        if new_content == content:
+            self.errors.append("Failed to add _image_ram_start in .sram.rodata")
+        content = new_content
+
         # 3. Add common-rom and snippets-rom-sections before .clib.rodata section
-        content = re.sub(
+        new_content = re.sub(
             r'(  \.clib\.rodata : ALIGN\(4\))',
             r'#include <zephyr/linker/common-rom.ld>\n/* Located in generated directory. This file is populated by calling\n * zephyr_linker_sources(ROM_SECTIONS ...). Useful for grouping iterable RO structs.\n */\n#include <snippets-rom-sections.ld>\n\n\1',
             content
         )
-        
-        # 4. Add __rodata_region_start and snippets-rodata in .rodata section
-        content = re.sub(
+        if new_content == content:
+            self.errors.append("Failed to add common-rom.ld and snippets-rom-sections.ld before .clib.rodata")
+        content = new_content
+
+        # 4. Add __rodata_region_start in .rodata section
+        new_content = re.sub(
             r'(  \.rodata : ALIGN\(4\)\n  \{\n)(    _rodata_start)',
             r'\1    __rodata_region_start = ABSOLUTE(.);\n\2',
             content
         )
-        
-        content = re.sub(
+        if new_content == content:
+            self.errors.append("Failed to add __rodata_region_start in .rodata")
+        content = new_content
+
+        # 4b. Add snippets-rodata in .rodata section
+        new_content = re.sub(
             r'(    \*\(\.rodata1\)\n)(    __XT_EXCEPTION_TABLE__)',
             r'\1\n    . = ALIGN(4);\n    #include <snippets-rodata.ld>\n    . = ALIGN(4);\n\n\2',
             content
         )
-        
+        if new_content == content:
+            self.errors.append("Failed to add #include <snippets-rodata.ld> in .rodata")
+        content = new_content
+
         # 5. Add __rodata_region_end after _rodata_end (the one near _bss_table_end)
-        content = re.sub(
+        new_content = re.sub(
             r'(_bss_table_end = ABSOLUTE\(\.\);\n    \. = ALIGN \(4\);\n    _rodata_end = ABSOLUTE\(\.\);)',
             r'\1\n    __rodata_region_end = ABSOLUTE(.);',
             content
         )
-        
+        if new_content == content:
+            self.errors.append("Failed to add __rodata_region_end after _rodata_end")
+        content = new_content
+
         # 6. Add __text_region_start before .text section
-        content = re.sub(
+        new_content = re.sub(
             r'(\n)(  \.text : ALIGN\(4\))',
             r'\1  __text_region_start =  ALIGN(4);\n\2',
             content
         )
-        
+        if new_content == content:
+            self.errors.append("Failed to add __text_region_start before .text section")
+        content = new_content
+
         # 7. Add .noinit section before main .data section and __data_start inside it
         noinit_section = f'''
   .noinit : ALIGN(4)
@@ -312,41 +336,57 @@ class LinkerScriptConverter:
 '''
         # Match ".data : ALIGN(4)" followed by "_data_start" to ensure we get the main .data section
         # This pattern will match the main .data section and add both .noinit before it and __data_start inside
-        content = re.sub(
+        new_content = re.sub(
             r'(\n)(  \.data : ALIGN\(4\)\n  \{\n)(    _data_start)',
             r'\1' + noinit_section + r'\2    __data_start = ABSOLUTE(.);\n\3',
             content
         )
-        
+        if new_content == content:
+            self.errors.append("Failed to add .noinit section and __data_start before/in .data section")
+        content = new_content
+
         # 9. Add snippets and relocation includes in .data section
-        content = re.sub(
+        new_content = re.sub(
             r'(    \. = ALIGN \(4\);\n)(    _data_end)',
             r'\1    #include <snippets-rwdata.ld>\n    . = ALIGN (4);\n#ifdef CONFIG_CODE_DATA_RELOCATION\n#include <linker_sram_data_relocate.ld>\n#endif\n    . = ALIGN (4);\n\2',
             content
         )
-        
+        if new_content == content:
+            self.errors.append("Failed to add snippets-rwdata.ld and linker_sram_data_relocate.ld in .data section")
+        content = new_content
+
         # 10. Add __data_end after _data_end in the main .data section
-        content = re.sub(
+        new_content = re.sub(
             r'(#include <linker_sram_data_relocate\.ld>\n#endif\n    \. = ALIGN \(4\);\n    _data_end = ABSOLUTE\(\.\);)',
             r'\1\n    __data_end = ABSOLUTE(.);',
             content
         )
-        
+        if new_content == content:
+            self.errors.append("Failed to add __data_end after _data_end in .data section")
+        content = new_content
+
         # 11. Add common-ram and other snippets before __llvm_prf_data section
-        content = re.sub(
+        new_content = re.sub(
             r'(  __llvm_prf_data : ALIGN\(4\))',
             r'#include <snippets-data-sections.ld>\n\n#include <zephyr/linker/common-ram.ld>\n\n#include <snippets-ram-sections.ld>\n\n\1',
             content
         )
-        
+        if new_content == content:
+            self.errors.append("Failed to add snippets-data-sections.ld and common-ram.ld before __llvm_prf_data")
+        content = new_content
+
         # 12. Add CODE_DATA_RELOCATION in .bss section
-        content = re.sub(
-            r'(    \*\(COMMON\)\n)(    \. = ALIGN \(8\);)',
-            r'\1#ifdef CONFIG_CODE_DATA_RELOCATION\n#include <linker_sram_bss_relocate.ld>\n#endif\n\2',
+        # Use ((?:.*\n)*?) to bridge any intermediate lines between *(COMMON) and . = ALIGN (8);
+        new_content = re.sub(
+            r'(    \*\(COMMON\)\n)((?:.*\n)*?)(    \. = ALIGN \(8\);)',
+            r'\1\2#ifdef CONFIG_CODE_DATA_RELOCATION\n#include <linker_sram_bss_relocate.ld>\n#endif\n\3',
             content
         )
-        
-        self.rules_applied['zephyr_sections_added'] = True
+        if new_content == content:
+            self.errors.append("Failed to add #include <linker_sram_bss_relocate.ld> in .bss section")
+        content = new_content
+
+        self.rules_applied['zephyr_sections_added'] = len(self.errors) == errors_before
         return content
     
     def _remove_extra_blank_lines(self, content):
