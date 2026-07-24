@@ -72,27 +72,27 @@ static void __used z_mp_entry(void)
 
 	#ifdef CONFIG_SCHED_IPI_SUPPORTED
 	/* Enable IPI interrupts dynamically based on configured CPU count */
-	if (CONFIG_MP_MAX_NUM_CPUS >= 1) irq_enable(XCHAL_SUBSYS_IPI_S0C0_INTNUM);
-	if (CONFIG_MP_MAX_NUM_CPUS >= 2) irq_enable(XCHAL_SUBSYS_IPI_S0C1_INTNUM);
+	irq_enable(XCHAL_SUBSYS_IPI_S0C0_INTNUM);
+	irq_enable(XCHAL_SUBSYS_IPI_S0C1_INTNUM);
 	#if CONFIG_MP_MAX_NUM_CPUS >= 3
-	if (CONFIG_MP_MAX_NUM_CPUS >= 3) irq_enable(XCHAL_SUBSYS_IPI_S0C2_INTNUM);
+	irq_enable(XCHAL_SUBSYS_IPI_S0C2_INTNUM);
 	#endif
 	#if CONFIG_MP_MAX_NUM_CPUS >= 4
-	if (CONFIG_MP_MAX_NUM_CPUS >= 4) irq_enable(XCHAL_SUBSYS_IPI_S0C3_INTNUM);
+	irq_enable(XCHAL_SUBSYS_IPI_S0C3_INTNUM);
 	#endif
 	#if CONFIG_MP_MAX_NUM_CPUS >= 5
-	if (CONFIG_MP_MAX_NUM_CPUS >= 5) irq_enable(XCHAL_SUBSYS_IPI_S0C4_INTNUM);
+	irq_enable(XCHAL_SUBSYS_IPI_S0C4_INTNUM);
 	#endif
 	#if CONFIG_MP_MAX_NUM_CPUS >= 6
-	if (CONFIG_MP_MAX_NUM_CPUS >= 6) irq_enable(XCHAL_SUBSYS_IPI_S0C5_INTNUM);
+	irq_enable(XCHAL_SUBSYS_IPI_S0C5_INTNUM);
 	#endif
 	#if CONFIG_MP_MAX_NUM_CPUS >= 7
-	if (CONFIG_MP_MAX_NUM_CPUS >= 7) irq_enable(XCHAL_SUBSYS_IPI_S0C6_INTNUM);
+	irq_enable(XCHAL_SUBSYS_IPI_S0C6_INTNUM);
 	#endif
 	#if CONFIG_MP_MAX_NUM_CPUS >= 8
-	if (CONFIG_MP_MAX_NUM_CPUS >= 8) irq_enable(XCHAL_SUBSYS_IPI_S0C7_INTNUM);
+	irq_enable(XCHAL_SUBSYS_IPI_S0C7_INTNUM);
 	#endif
-	#endif
+	#endif // CONFIG_SCHED_IPI_SUPPORTED
 
 	soc_cpus_active[prid] = true;
 	z_mp_start.fn(z_mp_start.arg);
@@ -189,7 +189,8 @@ static int soc_mp_init(void)
 	IRQ_CONNECT(XCHAL_SUBSYS_IPI_S0C7_INTNUM, 0, ipi_isr, NULL, 0);
 	irq_enable(XCHAL_SUBSYS_IPI_S0C7_INTNUM);
 	#endif
-	#endif
+	#endif // CONFIG_SCHED_IPI_SUPPORTED
+
 	return 0;
 }
 SYS_INIT(soc_mp_init, PRE_KERNEL_1, 99);
