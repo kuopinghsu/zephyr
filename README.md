@@ -187,14 +187,15 @@ $(xt-clang --show-config=xttools)/libexec/xt-sysbuilder \
 ```
 - Execute sample project — use the `xtsc-run` invocation matching your core count:
 
-  **2-core (e.g. `hifi5s_2c_l2`):**
+**2-core (e.g. `hifi5s_2c_l2`):**
 ```
 xtsc-run \
 --define=DSP_0_BINARY=build/zephyr/zephyr.elf \
 --define=DSP_1_BINARY=build/zephyr/zephyr.elf \
 --include=build/subsys/xtsc-run/SubSystem.inc
 ```
-  **4-core (e.g. `hifi5s_4c_l2`):**
+
+**4-core (e.g. `hifi5s_4c_l2`):**
 ```
 xtsc-run \
 --define=DSP_0_BINARY=build/zephyr/zephyr.elf \
